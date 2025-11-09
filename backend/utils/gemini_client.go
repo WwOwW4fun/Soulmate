@@ -88,3 +88,51 @@ func callGemini(prompt string, temperature float32) (string, error) {
 
 	return "", fmt.Errorf("Gemini returned an empty response")
 }
+
+// --- Hàm gọi API với contents tuỳ biến (hỗ trợ hội thoại) ---
+func callGeminiContents(contents []GeminiContent, temperature float32) (string, error) {
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	if apiKey == "" {
+		return "", fmt.Errorf("GEMINI_API_KEY is not set in .env file")
+	}
+
+	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey
+
+	reqBody := GeminiRequest{
+		Contents: contents,
+		GenerationConfig: map[string]float32{
+			"temperature": temperature,
+		},
+	}
+
+	reqBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", fmt.Errorf("error marshaling request: %w", err)
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return "", fmt.Errorf("error making POST request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(respBytes))
+	}
+
+	var geminiResp GeminiResponse
+	if err := json.Unmarshal(respBytes, &geminiResp); err != nil {
+		return "", fmt.Errorf("error unmarshaling response: %w", err)
+	}
+
+	if len(geminiResp.Candidates) > 0 && len(geminiResp.Candidates[0].Content.Parts) > 0 {
+		return strings.TrimSpace(geminiResp.Candidates[0].Content.Parts[0].Text), nil
+	}
+
+	return "", fmt.Errorf("Gemini returned an empty response")
+}

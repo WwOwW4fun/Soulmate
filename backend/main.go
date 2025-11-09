@@ -25,8 +25,7 @@ func main() {
 
 	server := http.NewServeMux()
 
-	server.Handle("/getques", middleware.Middleware(api.GetQuesHandler()))
-	server.Handle("/getplan", middleware.Middleware(api.GetPlanHandler()))
+	server.Handle("/chatguided", middleware.Middleware(api.ChatGuidedHandler()))
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{os.Getenv("CLIENT_URL")},
