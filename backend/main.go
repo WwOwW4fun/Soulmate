@@ -1,23 +1,41 @@
 package main
 
 import (
-    "encoding/json"
-    "log"
-    "net/http"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"planner/api"
+	"planner/middleware"
+
+	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
-type Message struct {
-    Text string `json:"text"`
-}
-
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(Message{Text: "Hello from Go backend!"})
-}
-
 func main() {
-    http.HandleFunc("/api/hello", helloHandler)
+	if err := godotenv.Load(".env"); err != nil {
+		panic(err)
+	}
 
-    log.Println("✅ Server running on http://localhost:8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8080"
+	}
+
+	server := http.NewServeMux()
+
+	server.Handle("/getques", middleware.Middleware(api.GetQuesHandler()))
+	server.Handle("/getplan", middleware.Middleware(api.GetPlanHandler()))
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{os.Getenv("CLIENT_URL")},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"POST"},
+	})
+
+	handler := c.Handler(server)
+
+	fmt.Printf("Listening at port %s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

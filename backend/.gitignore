@@ -1,0 +1,6 @@
+# Bỏ qua file biến môi trường
+.env
+
+# Bỏ qua file binary đã biên dịch (nếu có)
+planner
+planner.exe
