@@ -6,5 +6,5 @@ type ChatRequest struct {
 
 type ChatResponse struct {
 	Reply       string `json:"reply,omitempty"`
-	HealingPlan string `json:"healingPlan,omitempty"`
+/*	HealingPlan string `json:"healingPlan,omitempty"` */
 }

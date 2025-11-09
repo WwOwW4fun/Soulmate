@@ -28,9 +28,10 @@ func main() {
 	server.Handle("/chatguided", middleware.Middleware(api.ChatGuidedHandler()))
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{os.Getenv("CLIENT_URL")},
-		AllowCredentials: true,
-		AllowedMethods:   []string{"POST"},
+		AllowedOrigins:   []string{os.Getenv("CLIENT_URL")}, // http://localhost:5173
+        AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+        AllowedHeaders:   []string{"Content-Type", "Authorization"},
+        AllowCredentials: true,
 	})
 
 	handler := c.Handler(server)

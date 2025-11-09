@@ -22,7 +22,7 @@ var (
 // StartOrAdvanceSingle returns (reply, finished, healingPlan, error)
 // reply: next question or initial acknowledgement (finished=false)
 // finished=true: healingPlan populated, reply empty
-func StartOrAdvanceSingle(message string) (string, bool, string, error) {
+func StartOrAdvanceSingle(message string) (string, bool) {
     gsMu.Lock()
     defer gsMu.Unlock()
 
@@ -37,7 +37,7 @@ func StartOrAdvanceSingle(message string) (string, bool, string, error) {
         gsQs = []string{firstQ}
         gsAns = []string{}
         gsStep = 0
-        return fmt.Sprintf("Thanks for sharing. Let's explore this together. %s", firstQ), false, "", nil
+        return fmt.Sprintf("Thanks for sharing. Let's explore this together. %s", firstQ), false
     }
 
     // Record answer to current question
@@ -53,10 +53,10 @@ func StartOrAdvanceSingle(message string) (string, bool, string, error) {
         if err != nil {
             // Reset state even on error
             gsProblem, gsQs, gsAns, gsStep = "", nil, nil, 0
-            return "", false, "", fmt.Errorf("failed to generate plan: %w", err)
+            return "", false
         }
         gsProblem, gsQs, gsAns, gsStep = "", nil, nil, 0
-        return "", true, plan, nil
+        return plan, true
     }
 
     // Ask next AI question
@@ -66,7 +66,7 @@ func StartOrAdvanceSingle(message string) (string, bool, string, error) {
         nextQ = "When do you notice it feeling a little better or worse?"
     }
     gsQs = append(gsQs, nextQ)
-    return nextQ, false, "", nil
+    return nextQ, false
 }
 
 // buildHealingPlan composes the plan from collected Q&A.

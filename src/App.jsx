@@ -13,25 +13,31 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const newMessage = { sender: "user", text: input };
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
-
     setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "bot",
-          text:
-            "That sounds really meaningful. Can you share a bit more about how that makes you feel?",
-        },
-      ]);
-    }, 2000);
+
+  const res = await fetch("http://localhost:8080/chatguided", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: input }),
+  });
+
+   const data = await res.json();
+
+  if (data.reply) {
+    setMessages((prev) => [...prev, { sender: "bot", text: data.reply }]);
+  }
+
+  /*if (data.healingPlan) {
+    setMessages((prev) => [...prev, { sender: "bot", text: data.healingPlan }]);
+  }*/
+
+  setIsTyping(false);
   };
 
   return (
@@ -73,7 +79,7 @@ function App() {
       </div>
 
       <footer>
-      © 2025 Soulmate - Created by An Nguyen, Khoa Danh, Hiep Nguyen, Minh Trinh
+      © 2025 Soulmate - Created by An Nguyen, Khoa Danh, Hiep Nguyen, Phuc Ho
       </footer>
     </div>
   );
